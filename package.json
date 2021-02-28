@@ -1,0 +1,27 @@
+{
+  "name": "easy-orm",
+  "version": "0.0.1",
+  "description": "easy orm",
+  "main": "index.js",
+  "scripts": {
+    "biuld": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WittCsharp/easy-orm.git"
+  },
+  "keywords": [
+    "easy-orm"
+  ],
+  "author": "Witt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WittCsharp/easy-orm/issues"
+  },
+  "homepage": "https://github.com/WittCsharp/easy-orm#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "lodash": "^4.17.21"
+  }
+}
