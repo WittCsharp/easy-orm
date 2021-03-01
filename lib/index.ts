@@ -1,12 +1,13 @@
-import { Express } from 'express';
+import * as express from 'express';
+import { Application } from 'express';
 
 export class ServerManage {
-    app: Express;
+    app: Application;
     constructor() {
-        this.app = new Express();
+        this.app = express();
     }
 
     async start() {
-        
+
     }
 }

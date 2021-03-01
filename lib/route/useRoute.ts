@@ -32,7 +32,7 @@ export async function useRoute(options: {
     onPut?<T>({req, res, data}: {req: any; res:any; data: T}): Promise<any>;
     onPost?<T>({req, res, data}: {req: any; res:any; data: T}): Promise<any>;
     onDelete?<T>({req, res, data}: {req: any; res:any; data: T}): Promise<any>;
-}) : Router {
+}) : Promise<Router> {
     const router = Router();
     
     for (const key of Object.keys(METHODS)) {
