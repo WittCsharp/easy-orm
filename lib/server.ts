@@ -1,8 +1,13 @@
 import * as express from 'express';
+import { Server } from 'http';
+import Knex = require('knex');
 import * as morgan from 'morgan';
+import { useKnex } from './knex';
 import {getRoutes} from './route';
 
-export function useHttp({config, routes, hooks}: {
+let server: Server;
+
+export function useHttp({config, routes, hooks, knex}: {
     config: {
         port: number;
         debug: boolean;
@@ -11,8 +16,12 @@ export function useHttp({config, routes, hooks}: {
     hooks?: {
         befor?: Array<express.RequestHandler>,
         after?: Array<express.RequestHandler>,
-    }
+    },
+    knex?: Array<Knex.Config> | Knex.Config;
 }): express.Application {
+    if (knex) {
+        useKnex(knex);
+    }
     const {port} = config;
     const app = express();
     app.use(express.json());
@@ -51,8 +60,12 @@ export function useHttp({config, routes, hooks}: {
     });
 
     // 监听
-    app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
+    server = app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
     return app;
+}
+
+export function stopHttp() {
+    server.close();
 }
 
 /** HTTPS */

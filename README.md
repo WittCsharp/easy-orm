@@ -1,28 +1,70 @@
-# easy-orm
-便捷的orm
+# xeasy-orm
+便捷的orm,基于express搭建的简单易用的ORM
 
-### 功能设定
+## 快速开始
 
-- 简单的路由生成
-- 简单的逻辑配置
-- 简单的schema配置
+```
+npm install --save xeasy-orm
+or
+yarn add xeasy-orm
+```
 
-### 第三方库
+创建index.ts
 
-- express
-- knexjs
-- redis
-- mongoose
-- mysql
+```
+import { useHttp } from 'xeasy-orm';
 
-## 重点
+const app = useHttp({
+    config: {
+        port: 3000,
+        debug: true,
+    }
+})
+```
 
-### 路由规则制定
+> useHttp: 启动express服务
+> config为基本配置
+> - port： 启动端口号
+> - debug：启动日志模式
 
-1. 路由入参 （涉及数据格式以及传递类型，采用resfulAPI风格， get、post、patch、delete）
-2. 中间件过滤（设置中间件，采用ts格式配置路由格式以及入参和需要过滤的前后中间件）
+> useHttp config
 
-### 授权机制 （中间件/微服务）
+属性 | 是否必填 | 数据类型 | 说明
+---|---------|----------|------
+config | 必填 | object | express基本配置
+ --port | 必填 | number | 启动端口号
+ --debug | 必填 | boolean | 是否启动debug模式
+routes | 非必填 | Array<express.Router> | 需要加载的路由
+hooks | 非必填 | object | express中间件
+ --befor | 非必填 | Array<express.RequestHandler> | 访问所有api前调用
+ --after | 非必填 | Array<express.RequestHandler> | 访问所有api后调用
+knex | 非必填 | Array<Knex.Config> or Knex.Config | 创建knex对象，需要安装对应的数据库包
 
-1. 自有机制 token （配置用户名密码字段，加密方式等，表名）
-2. 第三方登录 钉钉、微信、支付宝等
+这样我们的服务便启动完成了
+
+### 添加Knex初始化
+
+#### 使用
+
+```
+import {useKnex, getKnexMaster} from 'xeasy-orm';
+
+// 读写分离模式的情况下，可以传递数组，数组的第一位为master数据库，用于写入操作
+useKnex({
+    client: 'mysql',
+    connection: {
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'app_test',
+        port: 3306,
+    }
+});
+
+// 使用useKnex获取client对象时，会默认逐个使用数据库连接
+const userList = await useKnex().table('user').select(*);
+// 使用master写入
+await getKnexMaster().table('user').install({name: 'name'});
+```
+
+#### useKnex 创建knex连接
