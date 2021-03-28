@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import * as supertest from 'supertest';
-import { useHttp, useRoute, stopHttp } from '../index';
+import { useHttp, stopHttp } from '../index';
+import {useRoute} from '../route';
 
 let app: Application;
 

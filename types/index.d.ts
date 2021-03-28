@@ -1,6 +1,13 @@
+
 declare module "xeasy-orm" {
     import * as express from 'express';
     import * as Knex from 'knex';
+    import { Connection, ConnectionOptions, Schema, Document } from 'mongoose';
+    type mongooseConfig = {
+        uri: string;
+        option: ConnectionOptions;
+    }
+
     function useHttp ({config, routes, hooks}: {
         config: {
             port: number;
@@ -52,4 +59,24 @@ declare module "xeasy-orm" {
 
     function getKnexMaster() : Knex;
 
+    function getMongoseMaster() : Connection;
+
+    function useMongose(configs?: mongooseConfig | Array<mongooseConfig> ) : Connection;
+
+    function newSchema<T extends Document>(tableName: string, schema: Schema);
+
+    interface dbApiInterface<T> {
+        add(data: T) : Promise<T>;
+        addMany(data: Array<T>) : Promise<Array<T>>;
+        updateOne(query: any, data: T) : Promise<T>;
+        updateById(id: string| number, data: T) : Promise<T>;
+        updateMany(query: any, data: T) : Promise<T>;
+        findOneById(id: string|number) : Promise<T>;
+        findOne(query: any) : Promise<T>;
+        findAll(query: any) : Promise<Array<T>>;
+        deleteById(id: string | number) : Promise<T>;
+        deleteOne(query: any) : Promise<T>;
+    }
+
+    function useMongoModel<T extends Document>(tableName: string, schema?: Schema) : dbApiInterface<T>
 }

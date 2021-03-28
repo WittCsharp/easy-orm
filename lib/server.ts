@@ -24,7 +24,7 @@ export function useHttp({config, routes, hooks, knex}: {
     }
     const {port} = config;
     const app = express();
-    app.use(express.json());
+    app.use(express.json({limit: '5mb'}));
     // debug log
     if (config.debug) app.use(morgan('dev'));
 

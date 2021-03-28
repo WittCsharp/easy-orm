@@ -68,3 +68,5 @@ await getKnexMaster().table('user').install({name: 'name'});
 ```
 
 #### useKnex 创建knex连接
+
+#### 加入mongoSchema 用于快速创建schema类型，并生成对应的orm
