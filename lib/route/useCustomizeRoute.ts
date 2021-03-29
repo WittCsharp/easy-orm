@@ -1,5 +1,6 @@
 import { RequestHandler, Router } from 'express';
 import { setRoute } from './useRoute';
+import { compact } from 'lodash';
 
 export function useCustomizeRoute<T>(options: {
     baseUrl: string;
@@ -19,27 +20,35 @@ export function useCustomizeRoute<T>(options: {
     if (options.handlers?.length) {
         for (const handler of options.handlers) {
             router[handler.method || 'post'](`${options.baseUrl}${handler.url}`,
-                // hooks befor
-                ...(options.before || []),
-                ...(handler.before || []),
-                // content
-                async (req: any, res: any, done) => {
-                    try {
-                        const result = await handler.hander({
-                            req, res,
-                            data: req.body,
-                            params: req.params,
-                            query: req.query,
-                        });
-                        res.result = result;
-                        done();
-                    } catch (error) {
-                        done(error)
+                ...compact([
+                    // hooks befor
+                    ...(options.before || []),
+                    ...(handler.before || []),
+                    // content
+                    async (req: any, res: any, done) => {
+                        try {
+                            const result = await handler.hander({
+                                req, res,
+                                data: req.body,
+                                params: req.params,
+                                query: req.query,
+                            });
+                            res.result = result;
+                            done();
+                        } catch (error) {
+                            done(error)
+                        }
+                    },
+                    // hooks after
+                    ...(handler.after || []),
+                    ...(options.after || []),
+                    (_req, res: any) => {
+                        if (res.result) {
+                            return res.status(200).json({message: 'success', data: res.result, status: 200})
+                        }
+                        return res.status(201).send('');
                     }
-                },
-                // hooks after
-                ...(handler.after || []),
-                ...(options.after || []),
+                ])
             );
         }
     }

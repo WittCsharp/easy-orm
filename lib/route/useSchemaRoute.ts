@@ -11,7 +11,7 @@ export default function useSchemaRouter({
     disable,
 } : {
     baseUrl: string;
-    model: MongoModelMaster<any, any>;
+    model() : MongoModelMaster<any, any>;
     before?: Array<RequestHandler>;
     after?: Array<RequestHandler>;
     disable?: Array<'insert' | 'list' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
@@ -25,7 +25,7 @@ export default function useSchemaRouter({
             disable.includes('list') ? null : {
                 url: '/list',
                 async hander({ data }) {
-                    return await model.findAll(data);
+                    return await model().findAll(data);
                 },
                 method: 'post'
             },
@@ -33,7 +33,7 @@ export default function useSchemaRouter({
             disable.includes('findById') ? null : {
                 url: '/:id',
                 async hander({ params }) {
-                    return await model.findOneById(params.id);
+                    return await model().findOneById(params.id);
                 },
                 method: 'get',
             },
@@ -42,7 +42,7 @@ export default function useSchemaRouter({
                 url: '/findone',
                 method: 'post',
                 async hander({data}) {
-                    return await model.findOne(data);
+                    return await model().findOne(data);
                 }
             },
             // find by limit
@@ -51,7 +51,7 @@ export default function useSchemaRouter({
                 url: '/:id',
                 method: 'put',
                 async hander({data, params}) {
-                    return await model.updateById(params.id, data);
+                    return await model().updateById(params.id, data);
                 }
             },
             // deleteById,
@@ -59,7 +59,7 @@ export default function useSchemaRouter({
                 url: '/:id',
                 method: 'delete',
                 async hander({ params }) {
-                    return await model.deleteById(params.id);
+                    return await model().deleteById(params.id);
                 }
             },
             // insert
@@ -68,9 +68,9 @@ export default function useSchemaRouter({
                 method: 'post',
                 async hander({data}) {
                     if (Array.isArray(data)) {
-                        return await model.addMany(data);
+                        return await model().addMany(data);
                     }
-                    return await model.addOne(data);
+                    return await model().addOne(data);
                 }
             }
         ])

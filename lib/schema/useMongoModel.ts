@@ -42,7 +42,7 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
 
     async updateById(id: string | number, data: D): Promise<D> {
         const doc = await getMongoseMaster().model<T>(this.tbName).findByIdAndUpdate(id, data);
-        return doc.toObject();
+        return await this.findOneById(doc._id);
     }
 
     async updateOne(query: FilterQuery<T>, data: D): Promise<D> {
@@ -50,9 +50,9 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
         return await this.findOneById(doc._id);
     }
 
-    async updateMany(query: FilterQuery<T>, data: D): Promise<D> {
+    async updateMany(query: FilterQuery<T>, data: D): Promise<D[]> {
         const doc = await getMongoseMaster().model<T>(this.tbName).updateMany(query, data);
-        return doc;
+        return await this.findAll({_id: doc.map(d => d._id)});
     }
 
     async deleteById(id: string): Promise<D> {
