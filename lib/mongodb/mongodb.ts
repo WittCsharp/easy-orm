@@ -17,17 +17,17 @@ function pushConfig(configs: Array<mongooseConfig>) {
         const config = configs.shift();
         masterClient = createConnection(config.uri, Object.assign({
             useNewUrlParser: true,
-            useUnifiedTopology: true,
+            useUnifiedTopology: false,
             server: {
                 auto_reconnect: true,
                 poolSize: 200,
             }      
-        }, config.option));
+        }, config.option || {}));
     } 
     for (const config of configs) {
         const client = createConnection(config.uri, Object.assign({
             useNewUrlParser: true,
-            useUnifiedTopology: true,
+            useUnifiedTopology: false,
             server: {
                 auto_reconnect: true,
                 poolSize: 200,
@@ -58,8 +58,7 @@ export function useMongose(configs?: mongooseConfig | Array<mongooseConfig> ) : 
 }
 
 export function newSchema<T extends Document>(tableName: string, schema: Schema) {
-    const mSchema: Schema = new Schema<T>(schema);
-    if (masterClient) masterClient.model<T>(tableName, mSchema);
+    if (masterClient) masterClient.model<T>(tableName, schema);
     if (resolveClients.length) {
         for (const client of resolveClients) {
             client.model<T>(tableName, schema);

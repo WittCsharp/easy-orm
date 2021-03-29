@@ -6,9 +6,10 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
     
     tbName: string;
     constructor(tableName: string, schema: Schema) {
-        this.tbName = this.tbName;
+        this.tbName = tableName;
         newSchema<T>(tableName, schema);
     }
+    
     async deleteOne(query: FilterQuery<T>): Promise<D> {
         const result = await useMongose().model<T>(this.tbName).findOneAndDelete(query);
         return result.toObject();
@@ -29,10 +30,11 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
         return doc.map(d => d.toObject());
     }
 
-    async add(data: D): Promise<D> {
-        const doc = await getMongoseMaster().model<T>(this.tbName).insertMany(data);
-        return doc.toObject();
+    async addOne(data: D): Promise<D> {
+        const doc = await getMongoseMaster().model<T>(this.tbName).insertMany([data]);
+        return doc[0].toObject();
     }
+
     async addMany(data: D[]): Promise<D[]> {
         const doc = await getMongoseMaster().model<T>(this.tbName).insertMany(data);
         return doc.map(d => d.toObject());
@@ -45,9 +47,9 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
 
     async updateOne(query: FilterQuery<T>, data: D): Promise<D> {
         const doc = await getMongoseMaster().model<T>(this.tbName).findOneAndUpdate(query, data);
-        return doc.toObject();
-        
+        return await this.findOneById(doc._id);
     }
+
     async updateMany(query: FilterQuery<T>, data: D): Promise<D> {
         const doc = await getMongoseMaster().model<T>(this.tbName).updateMany(query, data);
         return doc;

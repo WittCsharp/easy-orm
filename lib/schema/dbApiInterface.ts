@@ -1,5 +1,5 @@
 export interface dbApiInterface<T> {
-    add(data: T) : Promise<T>;
+    addOne(data: T) : Promise<T>;
     addMany(data: Array<T>) : Promise<Array<T>>;
     updateOne(query: any, data: T) : Promise<T>;
     updateById(id: string| number, data: T) : Promise<T>;
