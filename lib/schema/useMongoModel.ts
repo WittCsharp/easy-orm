@@ -2,66 +2,72 @@ import { dbApiInterface } from './dbApiInterface';
 import { Document, Schema, FilterQuery } from 'mongoose';
 import {useMongose, getMongoseMaster, newSchema} from '../mongodb';
 
-class MongoModelMaster<T extends Document> implements dbApiInterface<T> {
+class MongoModelMaster<T extends Document, D> implements dbApiInterface<D> {
+    
     tbName: string;
     constructor(tableName: string, schema: Schema) {
         this.tbName = this.tbName;
         newSchema<T>(tableName, schema);
     }
-    async deleteOne(query: FilterQuery<T>): Promise<T> {
-        return await useMongose().model<T>(this.tbName).findOneAndDelete(query);
+    async deleteOne(query: FilterQuery<T>): Promise<D> {
+        const result = await useMongose().model<T>(this.tbName).findOneAndDelete(query);
+        return result.toObject();
     }
 
-    async findOneById(id: string | number): Promise<T> {
+    async findOneById(id: string | number): Promise<D> {
         const doc = await useMongose().model<T>(this.tbName).findById(id);
-        return doc;
+        return doc.toObject();
     }
 
-    async findOne(query: FilterQuery<T>): Promise<T> {
+    async findOne(query: FilterQuery<T>): Promise<D> {
         const doc = await useMongose().model<T>(this.tbName).findOne(query);
-        return doc;
+        return doc.toObject();
     }
 
-    async findAll(query?: FilterQuery<T>): Promise<T[]> {
+    async findAll(query?: FilterQuery<T>): Promise<D[]> {
         const doc = await useMongose().model<T>(this.tbName).find(query);
-        return doc;
+        return doc.map(d => d.toObject());
     }
 
-    async add(data: T): Promise<T> {
+    async add(data: D): Promise<D> {
         const doc = await getMongoseMaster().model<T>(this.tbName).insertMany(data);
-        return doc;
+        return doc.toObject();
     }
-    async addMany(data: T[]): Promise<T[]> {
+    async addMany(data: D[]): Promise<D[]> {
         const doc = await getMongoseMaster().model<T>(this.tbName).insertMany(data);
-        return doc;
+        return doc.map(d => d.toObject());
     }
 
-    async updateById(id: string | number, data: T): Promise<T> {
-        return await getMongoseMaster().model<T>(this.tbName).findByIdAndUpdate(id, data);
+    async updateById(id: string | number, data: D): Promise<D> {
+        const doc = await getMongoseMaster().model<T>(this.tbName).findByIdAndUpdate(id, data);
+        return doc.toObject();
     }
 
-    async updateOne(query: FilterQuery<T>, data: T): Promise<T> {
-        return await getMongoseMaster().model<T>(this.tbName).findOneAndUpdate(query, data);
+    async updateOne(query: FilterQuery<T>, data: D): Promise<D> {
+        const doc = await getMongoseMaster().model<T>(this.tbName).findOneAndUpdate(query, data);
+        return doc.toObject();
         
     }
-    async updateMany(query: FilterQuery<T>, data: T): Promise<T> {
-        return await getMongoseMaster().model<T>(this.tbName).updateMany(query, data);
+    async updateMany(query: FilterQuery<T>, data: D): Promise<D> {
+        const doc = await getMongoseMaster().model<T>(this.tbName).updateMany(query, data);
+        return doc;
     }
 
-    async deleteById(id: string): Promise<T> {
-        return await getMongoseMaster().model<T>(this.tbName).findByIdAndDelete(id);
+    async deleteById(id: string): Promise<D> {
+        const doc = await getMongoseMaster().model<T>(this.tbName).findByIdAndDelete(id);
+        return doc.toObject();
     }
     
 }
 
 interface modelInterface {
-    [key: string]: dbApiInterface<any>;
+    [key: string]: MongoModelMaster<any, any>;
 }
 
 const models: modelInterface = {};
 
-export function useMongoModel<T extends Document>(tableName: string, schema?: Schema) : dbApiInterface<T> {
+export function useMongoModel<T extends Document, D>(tableName: string, schema?: Schema) : MongoModelMaster<T, D> {
     if (schema)
-        models[tableName] = new MongoModelMaster<T>(tableName, schema);
+        models[tableName] = new MongoModelMaster<T, D>(tableName, schema);
     return models[tableName];
 }

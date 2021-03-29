@@ -1,13 +1,15 @@
 import * as express from 'express';
 import { Server } from 'http';
-import Knex = require('knex');
+import {Config} from 'knex';
 import * as morgan from 'morgan';
 import { useKnex } from './knex';
+import { mongooseConfig } from './mongodb';
 import {getRoutes} from './route';
+import { useMongose } from './mongodb';
 
 let server: Server;
 
-export function useHttp({config, routes, hooks, knex}: {
+export function useHttp({config, routes, hooks, knex, mongo, json}: {
     config: {
         port: number;
         debug: boolean;
@@ -17,14 +19,23 @@ export function useHttp({config, routes, hooks, knex}: {
         befor?: Array<express.RequestHandler>,
         after?: Array<express.RequestHandler>,
     },
-    knex?: Array<Knex.Config> | Knex.Config;
+    knex?: Array<Config> | Config;
+    mongo?: mongooseConfig | Array<mongooseConfig>;
+    json?: number;
 }): express.Application {
+    // knex 配置初始化
     if (knex) {
         useKnex(knex);
     }
+    // mongo 配置初始化
+    if (mongo) {
+        useMongose(mongo);
+    }
     const {port} = config;
     const app = express();
-    app.use(express.json({limit: '5mb'}));
+    if (json) {
+        app.use(express.json({limit: `${json}mb`}));
+    }
     // debug log
     if (config.debug) app.use(morgan('dev'));
 

@@ -6,7 +6,7 @@ let index:number = 0;
 
 export type mongooseConfig = {
     uri: string;
-    option: ConnectionOptions;
+    option?: ConnectionOptions;
 }
 
 function pushConfig(configs: Array<mongooseConfig>) {
