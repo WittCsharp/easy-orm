@@ -2,7 +2,7 @@ import { dbApiInterface } from './dbApiInterface';
 import { Document, Schema, FilterQuery } from 'mongoose';
 import {useMongose, getMongoseMaster, newSchema} from '../mongodb';
 
-class MongoModelMaster<T extends Document, D> implements dbApiInterface<D> {
+export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D> {
     
     tbName: string;
     constructor(tableName: string, schema: Schema) {

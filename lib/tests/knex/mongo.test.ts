@@ -1,6 +1,6 @@
 import { useMongose } from '../../mongodb';
 import { Document, Schema } from 'mongoose';
-import {  useMongoModel } from '../../schema/useMongoModel';
+import {  MongoModelMaster, useMongoModel } from '../../schema/useMongoModel';
 
 describe('mongo test', () => {
 
@@ -14,22 +14,24 @@ describe('mongo test', () => {
         age: number;
     }
 
+    let model: MongoModelMaster<IUserDocument, IUser>;
+
 
     beforeAll(async () => {
         useMongose({
             uri: 'mongodb://admin:123456@127.0.0.1:27017/ormtest',
         });
 
-        const model = useMongoModel<IUserDocument, IUser>('user', new Schema({
+        model = useMongoModel<IUserDocument, IUser>('user', new Schema({
             name: {type: String},
             age: { type: Number},
         }));   
     })
 
     it('mongodb insert', async () => {
-        await useMongoModel<IUserDocument, IUser>('user').add({
+        await model.add({
             name: '张三',
-            age: 19,
+            age: 18
         })
     });
 })
