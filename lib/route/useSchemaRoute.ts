@@ -1,69 +1,78 @@
+import { RequestHandler, Router } from "express";
+import { MongoModelMaster } from "../schema";
+import { useCustomizeRoute } from "./useCustomizeRoute";
+import { compact } from 'lodash';
 
-import { RequestHandler, Router } from 'express';
-import { useRoute } from './useRoute';
-import { dbApiInterface } from '../schema/dbApiInterface';
-
-export function useSchemaRoute<T>(options: {
-    model: dbApiInterface<T>,
+export default function useSchemaRouter({
+    baseUrl,
+    model,
+    before,
+    after,
+    disable,
+} : {
     baseUrl: string;
-    url?: string | {
-        get?: string;
-        post?: string;
-        put?: string;
-        delete?: string;
-    };
-    hook?: {
-        before?: {
-            all?: Array<RequestHandler>;
-            find?: Array<RequestHandler>;
-            update?: Array<RequestHandler>;
-            remove?: Array<RequestHandler>;
-            insert?: Array<RequestHandler>;
-        },
-        after: {
-            all?: Array<RequestHandler>;
-            find?: Array<RequestHandler>;
-            update?: Array<RequestHandler>;
-            remove?: Array<RequestHandler>;
-            insert?: Array<RequestHandler>;
-        }
-    },
-    onInsert?({req, res, params, query, data}: {res?: any; req?: any; params?: any; query?: any; data?: any}) : Promise<T>;
-    onUpdate?({req, res, query, data}: {res?: any; req?: any; params?: any; query?: any; data?: any}) : Promise<T>;
-    onFind?({req, res, params, query}: {res?: any; req?: any; params?: any; query?: any}) : Promise<T>;
-    onRemove?({req, res, params, query}: {res?: any; req?: any; params?: any; query?: any}) : Promise<T>;
+    model: MongoModelMaster<any, any>;
+    before?: Array<RequestHandler>;
+    after?: Array<RequestHandler>;
+    disable?: Array<'insert' | 'list' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
 }) : Router {
-    const router = useRoute<T>({
-        baseUrl: options.baseUrl,
-        url: options.url,
-        hook: {
-            before: {
-                all: options?.hook?.before?.all,
-                get: options?.hook?.before?.find,
-                put: options?.hook?.before?.update,
-                delete: options?.hook?.before?.remove,
-                post: options?.hook?.before?.insert,
+    return useCustomizeRoute({
+        baseUrl: baseUrl,
+        before,
+        after,
+        handlers: compact([
+            // list
+            disable.includes('list') ? null : {
+                url: '/list',
+                async hander({ data }) {
+                    return await model.findAll(data);
+                },
+                method: 'post'
             },
-            after: {
-                all: options?.hook?.after?.all,
-                get: options?.hook?.after?.find,
-                put: options?.hook?.after?.update,
-                delete: options?.hook?.after?.remove,
-                post: options?.hook?.after?.insert,
+            // findById
+            disable.includes('findById') ? null : {
+                url: '/:id',
+                async hander({ params }) {
+                    return await model.findOneById(params.id);
+                },
+                method: 'get',
+            },
+            // findOne
+            disable.includes('findOne') ? null : {
+                url: '/findone',
+                method: 'post',
+                async hander({data}) {
+                    return await model.findOne(data);
+                }
+            },
+            // find by limit
+            // editeById,
+            disable.includes('editeById') ? null : {
+                url: '/:id',
+                method: 'put',
+                async hander({data, params}) {
+                    return await model.updateById(params.id, data);
+                }
+            },
+            // deleteById,
+            disable.includes('deleteById') ? null : {
+                url: '/:id',
+                method: 'delete',
+                async hander({ params }) {
+                    return await model.deleteById(params.id);
+                }
+            },
+            // insert
+            disable.includes('insert') ? null : {
+                url: '/insert',
+                method: 'post',
+                async hander({data}) {
+                    if (Array.isArray(data)) {
+                        return await model.addMany(data);
+                    }
+                    return await model.addOne(data);
+                }
             }
-        },
-        async onPost({req, res, params, query, data}) {
-            return await options.onInsert({data, req, res, params, query});
-        },
-        async onGet({req, res, params, query}) {
-            return await options.onFind({params, query, res, req});
-        },
-        async onDelete({req, res, query, params}) {
-            return await options.onRemove({params, query, res, req});
-        },
-        async onPut({req, res, data, params, query}) {
-            return await options.onUpdate({req, res, data, params, query});
-        }
-    });
-    return router;
+        ])
+    })
 }
