@@ -10,7 +10,7 @@ export function useCustomizeRoute<T>(options: {
         url?: string;
         method?: 'post' | 'delete' | 'put' | 'get';
         before?: Array<RequestHandler>;
-        hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: any}) : Promise<T>;
+        hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any>;
         after?: Array<RequestHandler>;
     }>,
    
