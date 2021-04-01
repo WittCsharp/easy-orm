@@ -6,6 +6,7 @@ interface IRedisManage {
 
 export interface IRedisConfig {
     key: string;
+    default?: boolean;
     config: Redis.RedisOptions | Array<Redis.RedisOptions>;
 }
 
@@ -25,5 +26,7 @@ export function useRedis(options?: IRedisConfig | string) : Redis.Redis | Redis.
     if (!options) return clients.default?.redis;
     if (typeof options == 'string') return clients[options]?.redis;
     clients[options.key || 'default'] = new RedisClient(options.config);
+    if (options.default)
+        clients.default = clients[options.key];
     return clients[options?.key || 'default']?.redis;
 }
