@@ -4,7 +4,7 @@
   "description": "easy orm",
   "main": "src/index.js",
   "scripts": {
-    "test": "tsc --build && jest ./src/tests",
+    "test": "tsc --build && jest ./src/tests --detectOpenHandles",
     "build": "tsc --build",
     "clean": "tsc --build --clean"
   },

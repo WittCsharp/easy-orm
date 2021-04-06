@@ -1,21 +1,26 @@
 import { Connection, createConnection, ConnectionOptions, Schema, Document } from 'mongoose';
 
-let masterClient: Connection;
-let resolveClients: Array<Connection> = [];
-let index:number = 0;
-
-export type mongooseConfig = {
+interface IConfig {
     uri: string;
     option?: ConnectionOptions;
 }
 
-function pushConfig(configs: Array<mongooseConfig>) {
-    if (!configs.length) {
-        return [];
+export interface IMongoConfig {
+    key: string;
+    default?: boolean;
+    config: IConfig | Array<IConfig>
+}
+
+class MongoClient {
+    masterClient: Connection;
+    resolveClients: Array<Connection> = [];
+    index:number = 0;
+    constructor(config: Array<IConfig>) {
+        this._pushConfig(config);
     }
-    if (!masterClient) {
-        const config = configs.shift();
-        masterClient = createConnection(config.uri, Object.assign({
+
+    _createClient(config: IConfig) : Connection {
+        return createConnection(config.uri, Object.assign({
             useNewUrlParser: true,
             useUnifiedTopology: false,
             server: {
@@ -23,45 +28,75 @@ function pushConfig(configs: Array<mongooseConfig>) {
                 poolSize: 200,
             }      
         }, config.option || {}));
-    } 
-    for (const config of configs) {
-        const client = createConnection(config.uri, Object.assign({
-            useNewUrlParser: true,
-            useUnifiedTopology: false,
-            server: {
-                auto_reconnect: true,
-                poolSize: 200,
+    }
+
+    _pushConfig(configs: Array<IConfig>) {
+        const masterConfig = configs.shift();
+        this.masterClient = this._createClient(masterConfig);
+        for (const config of configs) {
+            this.resolveClients.push(this._createClient(config));
+        }
+    }
+
+    getClient(master?: boolean): Connection {
+        if (master || this.resolveClients.length === 0) return this.masterClient;
+        this.index += 1;
+        if (this.index >= this.resolveClients.length) this.index = 0;
+        return this.resolveClients[this.index];
+    }
+
+    newSchema<T extends Document>(tableName: string, schema: Schema) {
+        if (this.masterClient) this.masterClient.model<T>(tableName, schema);
+        if (this.resolveClients.length) {
+            for (const client of this.resolveClients) {
+                client.model<T>(tableName, schema);
             }
-        }, config.option || {}));
-        resolveClients.push(client);
-    }
-    return resolveClients;
-}
-
-export function getMongoseMaster() : Connection {
-    return masterClient;
-}
-
-export function useMongose(configs?: mongooseConfig | Array<mongooseConfig> ) : Connection {
-    if (!configs) {
-        if (resolveClients.length) {
-            const client = resolveClients[index];
-            index++;
-            if (index > resolveClients.length) index = 0;
-            return client;
         }
-        return masterClient;
     }
-    pushConfig(Array.isArray(configs) ? configs : [configs])
-    if(!resolveClients.length) return masterClient;
-    return resolveClients[index];
+
+    closeAll() {
+        if (this.masterClient) this.masterClient.close(true);
+        for (const client of this.resolveClients) {
+            client.close(true);
+        }
+    }
 }
 
-export function newSchema<T extends Document>(tableName: string, schema: Schema) {
-    if (masterClient) masterClient.model<T>(tableName, schema);
-    if (resolveClients.length) {
-        for (const client of resolveClients) {
-            client.model<T>(tableName, schema);
+interface IMongodbManage {
+    [key: string]: MongoClient;
+}
+
+const mongoDbManage: IMongodbManage = {};
+
+export function useMongose(configs?: IMongoConfig | Array<IMongoConfig> | string, master?: boolean ) : Connection {
+    if (typeof configs === 'string') return mongoDbManage[configs]?.getClient(master);
+    if (!configs) return mongoDbManage.default?.getClient(master);
+
+    if (!Array.isArray(configs)) {
+        configs = [configs];
+    }
+
+    for (const config of configs) {
+        mongoDbManage[config.key] = new MongoClient(Array.isArray(config.config) ? config.config : [config.config]);
+        if (config.default) {
+            mongoDbManage.default = mongoDbManage[config.key];
         }
+    }
+
+    if (mongoDbManage.default) {
+        return mongoDbManage.default.getClient(master);
+    } else {
+        return mongoDbManage[configs[0].key]?.getClient(master);
+    }
+}
+
+export function newSchema<T extends Document>(tableName: string, schema: Schema, key?: string) {
+    const client = mongoDbManage[key || 'default'];
+    client.newSchema<T>(tableName, schema);
+}
+
+export function closeMongoAll() {
+    for (const key in mongoDbManage) {
+        mongoDbManage[key].closeAll();
     }
 }

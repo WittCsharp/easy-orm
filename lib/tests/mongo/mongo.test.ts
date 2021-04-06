@@ -1,4 +1,4 @@
-import { useMongose } from '../../mongodb';
+import { closeMongoAll, useMongose } from '../../mongodb';
 import { Document, Schema } from 'mongoose';
 import {  MongoModelMaster, useMongoModel } from '../../schema/useMongoModel';
 
@@ -20,7 +20,11 @@ describe('mongo test', () => {
 
     beforeAll(async () => {
         useMongose({
-            uri: 'mongodb://admin:123456@127.0.0.1:27017/admin',
+            key: 'mongo',
+            default: true,
+            config: {
+                uri: 'mongodb://admin:123456@127.0.0.1:27017/admin',
+            }
         });
 
         model = useMongoModel<IUserDocument, IUser>('user', new Schema({
@@ -68,4 +72,8 @@ describe('mongo test', () => {
         const data = await model.findAll({});
         expect(data.length).toBe(0);
     });
+
+    afterAll(() => {
+        closeMongoAll();
+    })
 })
