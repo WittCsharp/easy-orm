@@ -1,26 +1,28 @@
 import * as express from 'express';
 import { Server } from 'http';
-import {Config} from 'knex';
 import * as morgan from 'morgan';
 import { useKnex } from './knex';
-import { mongooseConfig } from './mongodb';
+import { IMongoConfig } from './mongodb';
 import {getRoutes} from './route';
 import { useMongose } from './mongodb';
+import { IRedisConfig, useRedis } from './redis';
+import { IKnexConfig } from './knex/index';
 
 let server: Server;
 
-export function useHttp({config, routes, hooks, knex, mongo, json}: {
+export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     config: {
         port: number;
-        debug: boolean;
+        debug?: boolean;
     };
     routes?: Array<express.Router> | undefined | null;
     hooks?: {
-        befor?: Array<express.RequestHandler>,
+        before?: Array<express.RequestHandler>,
         after?: Array<express.RequestHandler>,
     },
-    knex?: Array<Config> | Config;
-    mongo?: mongooseConfig | Array<mongooseConfig>;
+    knex?: Array<IKnexConfig> | IKnexConfig;
+    mongo?: IMongoConfig | Array<IMongoConfig>;
+    redis?: Array<IRedisConfig> | IRedisConfig;
     json?: number;
 }): express.Application {
     // knex 配置初始化
@@ -31,6 +33,14 @@ export function useHttp({config, routes, hooks, knex, mongo, json}: {
     if (mongo) {
         useMongose(mongo);
     }
+    // redis 配置初始化
+    if (redis) {
+        if (Array.isArray(redis)) {
+            for (const redisConfig of redis) {
+                useRedis(redisConfig);
+            }
+        } else useRedis(redis);
+    }
     const {port} = config;
     const app = express();
     if (json) {
@@ -40,8 +50,8 @@ export function useHttp({config, routes, hooks, knex, mongo, json}: {
     if (config.debug) app.use(morgan('dev'));
 
     // befor goable hooks
-    if (hooks?.befor) {
-        for (const handler of hooks.befor) {
+    if (hooks?.before) {
+        for (const handler of hooks.before) {
             app.use(handler);
         }
     }
@@ -78,10 +88,3 @@ export function useHttp({config, routes, hooks, knex, mongo, json}: {
 export function stopHttp() {
     server.close();
 }
-
-/** HTTPS */
-// export function useHttps({config}: {config: any;}) : Express {
-//     const app = Express();
-
-//     return app;
-// }

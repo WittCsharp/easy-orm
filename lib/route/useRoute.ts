@@ -40,10 +40,10 @@ export function useRoute<T>(options: {
             post?: Array<RequestHandler>;
         }
     };
-    onGet?({req, res, params, query}: {req: any; res:any; params: any;query:any;}): Promise<any>;
-    onPut?({req, res, data, params, query}: {req: any; res:any; data: T; params: any;query:any;}): Promise<any>;
-    onPost?({req, res, data, params, query}: {req: any; res:any; data: T; params: any;query:any;}): Promise<any>;
-    onDelete?({req, res, params, query}: {req: any; res:any; params: any;query:any;}): Promise<any>;
+    onGet?({req, res, params, query}: {req: any; res:any; params: any;query:any;}): Promise<any> | any;
+    onPut?({req, res, data, params, query}: {req: any; res:any; data: T; params: any;query:any;}): Promise<any> | any;
+    onPost?({req, res, data, params, query}: {req: any; res:any; data: T; params: any;query:any;}): Promise<any> | any;
+    onDelete?({req, res, params, query}: {req: any; res:any; params: any;query:any;}): Promise<any> | any;
 }) : Router {
     const router = Router();
     for (const key of Object.keys(METHODS)) {

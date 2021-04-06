@@ -1,10 +1,10 @@
 {
   "name": "xeasy-orm",
-  "version": "0.0.10",
+  "version": "0.0.14",
   "description": "easy orm",
   "main": "src/index.js",
   "scripts": {
-    "test": "tsc --build && jest ./src/tests",
+    "test": "tsc --build && jest ./src/tests --detectOpenHandles",
     "build": "tsc --build",
     "clean": "tsc --build --clean"
   },
@@ -23,8 +23,10 @@
   "homepage": "https://github.com/WittCsharp/easy-orm#readme",
   "dependencies": {
     "@types/express": "^4.17.11",
+    "@types/ioredis": "^4.22.2",
     "@types/mongoose": "^5.10.4",
     "express": "^4.17.1",
+    "ioredis": "^4.24.6",
     "knex": "^0.21.19",
     "lodash": "^4.17.21",
     "mongoose": "5.10.4",
