@@ -1,5 +1,5 @@
 import { dbApiInterface } from './dbApiInterface';
-import { Document, Schema, FilterQuery } from 'mongoose';
+import { Document, Schema, FilterQuery, Model } from 'mongoose';
 import {useMongose, newSchema} from '../mongodb';
 
 export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D> {
@@ -7,13 +7,21 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
     mongoKey?: string;
     constructor(tableName: string, schema: Schema, mongoKey?: string) {
         this.tbName = tableName;
-        this.mongoKey = mongoKey;
+        this.mongoKey = mongoKey;  // 对应的client端key
         newSchema<T>(tableName, schema, mongoKey);
+    }
+
+    getModel(master?: boolean) : Model<T, {}> {
+        return useMongose(this.mongoKey, master).model<T>(this.tbName);
     }
     
     async deleteOne(query: FilterQuery<T>): Promise<D> {
         const result = await useMongose().model<T>(this.tbName).findOneAndDelete(query);
         return result.toObject();
+    }
+
+    async findCount(query?: FilterQuery<T>) : Promise<number> {
+        return await useMongose().model<T>(this.tbName).count(query);
     }
 
     async findOneById(id: string | number): Promise<D> {
@@ -26,8 +34,21 @@ export class MongoModelMaster<T extends Document, D> implements dbApiInterface<D
         return doc.toObject();
     }
 
-    async findAll(query?: FilterQuery<T>): Promise<D[]> {
-        const doc = await useMongose().model<T>(this.tbName).find(query);
+    async findAll(query?: FilterQuery<T>, sort?: any): Promise<D[]> {
+        const doc = await useMongose().model<T>(this.tbName).find(query).sort(sort);
+        return doc.map(d => d.toObject());
+    }
+
+    async findList(options: {
+        query?: FilterQuery<T>; 
+        page: number; 
+        pageSize: number;
+        sort?: any;
+    }): Promise<D[]> {
+        const doc = await useMongose().model<T>(this.tbName).find(options.query)
+            .skip(options.pageSize * (options.page - 1))
+            .limit(options.pageSize)
+            .sort(options.sort);
         return doc.map(d => d.toObject());
     }
 
