@@ -1,6 +1,8 @@
 import { closeMongoAll, useMongose } from '../../mongodb';
 import { Document, Schema } from 'mongoose';
 import {  MongoModelMaster, useMongoModel } from '../../schema/useMongoModel';
+import useLogger from '../../log4j';
+import { levels } from 'log4js';
 
 interface IUserDocument extends Document {
     name: string;
@@ -63,6 +65,11 @@ describe('mongo test', () => {
     });
 
     it('deleteOne', async () => {
+        useLogger().log({
+            logger: 'test',
+            level: levels.ERROR,
+            message: 'delete on by mongo with log4js'
+        })
         const result = await model.deleteOne({name: '李四'});
         expect(result).toMatchObject({
             name: '李四',

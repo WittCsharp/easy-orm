@@ -14,7 +14,7 @@ export default function useSchemaRouter({
     model() : MongoModelMaster<any, any>;
     before?: Array<RequestHandler>;
     after?: Array<RequestHandler>;
-    disable?: Array<'insert' | 'list' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
+    disable?: Array<'insert' | 'list' | 'findAll' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
 }) : Router {
     return useCustomizeRoute({
         baseUrl: baseUrl,
@@ -24,8 +24,19 @@ export default function useSchemaRouter({
             // list
             disable.includes('list') ? null : {
                 url: '/list',
-                async hander({ data }) {
-                    return await model().findAll(data);
+                async hander({ data, query }) {
+                    // 获取总数量
+                    const total = await model().findCount(data.query);
+                    const {page, pageSize} = query;
+                    const list = await model().findList({
+                        query: data.query,
+                        page: page,
+                        pageSize: pageSize,
+                        sort: data.sort,
+                    });
+                    return {
+                        total, list
+                    }
                 },
                 method: 'post'
             },
@@ -45,7 +56,14 @@ export default function useSchemaRouter({
                     return await model().findOne(data);
                 }
             },
-            // find by limit
+            // find all
+            disable.includes('findAll') ? null : {
+                url: '/findall',
+                method: 'post',
+                async hander({data}) {
+                    return await model().findAll(data.query, data.sort);
+                }
+            },
             // editeById,
             disable.includes('editeById') ? null : {
                 url: '/:id',
