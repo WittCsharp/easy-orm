@@ -2,6 +2,7 @@ import { RequestHandler, Router } from "express";
 import { MongoModelMaster } from "../schema";
 import { useCustomizeRoute } from "./useCustomizeRoute";
 import { compact } from 'lodash';
+import { KnexModelMaster } from "../schema/useKnexModel";
 
 export default function useSchemaRouter({
     baseUrl,
@@ -11,11 +12,12 @@ export default function useSchemaRouter({
     disable,
 } : {
     baseUrl: string;
-    model() : MongoModelMaster<any, any>;
+    model() : MongoModelMaster<any, any> | KnexModelMaster<any>;
     before?: Array<RequestHandler>;
     after?: Array<RequestHandler>;
     disable?: Array<'insert' | 'list' | 'findAll' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
 }) : Router {
+    disable = disable || [];
     return useCustomizeRoute({
         baseUrl: baseUrl,
         before,
@@ -26,13 +28,13 @@ export default function useSchemaRouter({
                 url: '/list',
                 async hander({ data, query }) {
                     // 获取总数量
-                    const total = await model().findCount(data.query);
+                    const total = await model().findCount(data?.query);
                     const {page, pageSize} = query;
                     const list = await model().findList({
-                        query: data.query,
-                        page: page,
-                        pageSize: pageSize,
-                        sort: data.sort,
+                        query: data?.query,
+                        page: Number(page),
+                        pageSize: Number(pageSize),
+                        sort: data?.sort,
                     });
                     return {
                         total, list
@@ -61,7 +63,7 @@ export default function useSchemaRouter({
                 url: '/findall',
                 method: 'post',
                 async hander({data}) {
-                    return await model().findAll(data.query, data.sort);
+                    return await model().findAll(data?.query, data?.sort);
                 }
             },
             // editeById,
@@ -88,7 +90,8 @@ export default function useSchemaRouter({
                     if (Array.isArray(data)) {
                         return await model().addMany(data);
                     }
-                    return await model().addOne(data);
+                    const result = await model().addOne(data);
+                    return result;
                 }
             }
         ])

@@ -3,3 +3,5 @@ node_modules
 lib
 *.lock
 tsconfig.json
+*.test.*
+src/libs/useTest*

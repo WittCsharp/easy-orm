@@ -1,11 +1,11 @@
 {
   "name": "xeasy-orm",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "easy orm",
   "main": "src/index.js",
   "scripts": {
-    "test": "rm -rf ./src && tsc --build && jest ./src/tests --detectOpenHandles",
-    "build": "tsc --build",
+    "test": "rm -rf ./src && tsc --build && jest ./src/**/*/*.test.js --detectOpenHandles --coverage",
+    "build": "rm -rf ./src && tsc --build",
     "clean": "tsc --build --clean"
   },
   "repository": {

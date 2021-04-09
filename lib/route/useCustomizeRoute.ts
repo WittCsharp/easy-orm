@@ -1,6 +1,8 @@
 import { RequestHandler, Router } from 'express';
 import { setRoute } from './useRoute';
 import { compact } from 'lodash';
+import useLogger from '../log4j';
+import { levels } from 'log4js';
 
 export function useCustomizeRoute<T>(options: {
     baseUrl: string;
@@ -36,6 +38,11 @@ export function useCustomizeRoute<T>(options: {
                             res.result = result;
                             done();
                         } catch (error) {
+                            useLogger().log({
+                                logger: 'request',
+                                level: levels.ERROR,
+                                message: error.message,
+                            })
                             done(error)
                         }
                     },

@@ -29,10 +29,16 @@ const configureLog4js = {
     categories: {
         default: {
             appenders: [
-                'ruleFile', 'out'
+                'ruleFile'
             ], 
             level: 'all',
         },
+        debug: {
+            appenders: [
+                'ruleFile', 'out'
+            ],
+            level: 'debug',
+        }
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID',
@@ -57,8 +63,13 @@ class Logger {
         logger?: string;
         level?: log4js.Level;
         message: string;
-    }) {
+    } | string) {
+        if (typeof options === 'string') return this._logMessage(options);
         this.logger.getLogger(options.logger)[options.level?.levelStr.toLowerCase() || 'info'](options.message);
+    }
+
+    _logMessage(message: string) {
+        this.logger.getLogger().debug(message);
     }
 }
 
