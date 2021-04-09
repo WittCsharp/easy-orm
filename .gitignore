@@ -3,3 +3,7 @@ node_modules
 src
 *.lock
 *lock.json
+*DS_Store
+*-lock*
+*.lock
+coverage

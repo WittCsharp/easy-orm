@@ -1,4 +1,4 @@
-export interface dbApiInterface<T> {
+export interface IDbApi<T> {
     addOne(data: T) : Promise<T>;
     addMany(data: Array<T>) : Promise<Array<T>>;
     updateOne(query: any, data: T) : Promise<T>;
