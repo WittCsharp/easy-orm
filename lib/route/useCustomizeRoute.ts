@@ -4,17 +4,19 @@ import { compact } from 'lodash';
 import useLogger from '../log4j';
 import { levels } from 'log4js';
 
+export interface IHandlerConfig<T> {
+    url?: string;
+    method?: 'post' | 'delete' | 'put' | 'get';
+    before?: Array<RequestHandler>;
+    hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any> | any;
+    after?: Array<RequestHandler>;
+}
+
 export function useCustomizeRoute<T>(options: {
     baseUrl: string;
     before?: Array<RequestHandler>;
     after?: Array<RequestHandler>;
-    handlers?: Array<{
-        url?: string;
-        method?: 'post' | 'delete' | 'put' | 'get';
-        before?: Array<RequestHandler>;
-        hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any> | any;
-        after?: Array<RequestHandler>;
-    }>,
+    handlers?: Array<IHandlerConfig<T>>,
    
 }) : Router {
     const router = Router();
