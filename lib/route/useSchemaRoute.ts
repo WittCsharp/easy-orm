@@ -1,4 +1,4 @@
-import { RequestHandler, Router } from "express";
+import { ErrorRequestHandler, RequestHandler, Router } from "express";
 import { MongoModelMaster } from "../schema";
 import { IHandlerConfig, useCustomizeRoute } from "./useCustomizeRoute";
 import { compact } from 'lodash';
@@ -21,7 +21,7 @@ export default function useSchemaRouter<T>({
     baseUrl: string;
     model() : MongoModelMaster<any, any> | KnexModelMaster<any>;
     before?: Array<RequestHandler>;
-    after?: Array<RequestHandler>;
+    after?: Array<RequestHandler | ErrorRequestHandler>;
     disable?: Array<'insert' | 'list' | 'findAll' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
     findOneHandler?: IHandlerConfig<T>;
     editeByIdHandler?: IHandlerConfig<T>;

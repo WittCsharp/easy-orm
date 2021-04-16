@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import {  MongoModelMaster, useMongoModel } from '../../schema/useMongoModel';
+import {  cleanAll, MongoModelMaster, useMongoModel } from '../useMongoModel';
 import { useTestHandler } from '../../tests/useTestHandler';
 import useLogger from '../../log4j';
 import { levels } from 'log4js';
@@ -200,6 +200,25 @@ useTestHandler('mongo test', () => {
     it('delete one', async () => {
         await model.addOne({ name: '张三' });
         await model.deleteOne({name: '张三'});
+        const result = await model.findCount();
+
+        expect(result).toBe(0);
+    });
+
+    it('clean', async () => {
+        await model.addOne({ name: '张三' });
+        await model.addOne({ name: '张三2' });
+
+        await model.clean();
+        const result = await model.findCount();
+
+        expect(result).toBe(0);
+    });
+
+    it('clean all', async () => {
+        await model.addOne({ name: '张三' });
+        await cleanAll();
+
         const result = await model.findCount();
 
         expect(result).toBe(0);

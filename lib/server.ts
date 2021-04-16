@@ -18,7 +18,7 @@ export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     routes?: Array<express.Router> | undefined | null;
     hooks?: {
         before?: Array<express.RequestHandler>,
-        after?: Array<express.RequestHandler>,
+        after?: Array<express.RequestHandler | express.ErrorRequestHandler>,
     },
     knex?: Array<IKnexConfig> | IKnexConfig;
     mongo?: IMongoConfig | Array<IMongoConfig>;

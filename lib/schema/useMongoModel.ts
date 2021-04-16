@@ -12,6 +12,14 @@ export class MongoModelMaster<T extends Document, D> implements IDbApi<D> {
         this.dbKey = dbKey;  // 对应的client端key
         newSchema<T>(tableName, schema, dbKey);
     }
+    async clean(): Promise<boolean> {
+        try {
+            await useMongose(this.dbKey, true).model<T>(this.tbName).remove({});
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     getModel(master?: boolean) : Model<T, {}> {
         return useMongose(this.dbKey, master).model<T>(this.tbName);
@@ -113,4 +121,10 @@ export function useMongoModel<T extends Document, D>(tableName: string, schema?:
         message: Object.keys(models).join('-'),
     })
     return models[tableName];
+}
+
+export async function cleanAll() {
+    for (const tableName of Object.keys(models)) {
+        await models[tableName].clean();
+    }
 }

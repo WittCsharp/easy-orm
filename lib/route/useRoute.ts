@@ -1,6 +1,6 @@
 'use strict';
 
-import { Router, RequestHandler } from 'express';
+import { Router, RequestHandler, ErrorRequestHandler } from 'express';
 import { compact } from 'lodash';
 
 const routes : Array<Router> = [];
@@ -26,18 +26,18 @@ export function useRoute<T>(options: {
     };
     hook?: {
         before?: {
-            all?: Array<RequestHandler>;
-            get?: Array<RequestHandler>;
-            put?: Array<RequestHandler>;
-            delete?: Array<RequestHandler>;
-            post?: Array<RequestHandler>;
+            all?: Array<RequestHandler | ErrorRequestHandler>;
+            get?: Array<RequestHandler | ErrorRequestHandler>;
+            put?: Array<RequestHandler | ErrorRequestHandler>;
+            delete?: Array<RequestHandler | ErrorRequestHandler>;
+            post?: Array<RequestHandler | ErrorRequestHandler>;
         },
         after?: {
-            all?: Array<RequestHandler>;
-            get?: Array<RequestHandler>;
-            put?: Array<RequestHandler>;
-            delete?: Array<RequestHandler>;
-            post?: Array<RequestHandler>;
+            all?: Array<RequestHandler | ErrorRequestHandler>;
+            get?: Array<RequestHandler | ErrorRequestHandler>;
+            put?: Array<RequestHandler | ErrorRequestHandler>;
+            delete?: Array<RequestHandler | ErrorRequestHandler>;
+            post?: Array<RequestHandler | ErrorRequestHandler>;
         }
     };
     onGet?({req, res, params, query}: {req: any; res:any; params: any;query:any;}): Promise<any> | any;
