@@ -1,10 +1,12 @@
 import { Schema, Document } from "mongoose";
 import { useHttp } from "..";
 import { closeKnexAll, useKnex } from "../knex";
-import { closeMongoAll, useMongose } from "../mongodb";
+import { closeMongoAll } from "../mongodb";
 import { useMongoModel } from "../schema";
 import { stopHttp } from "../server";
 import * as supertest from 'supertest';
+import { cleanAll as knexCleanAll } from "../schema/useKnexModel";
+import { cleanAll as mongoCleanAll } from "../schema/useMongoModel";
 
 interface IUserDocument extends Document {
     name: string;
@@ -37,7 +39,7 @@ export function useTestHandler(desc: string, fn: jest.EmptyFunction) {
                         uri: 'mongodb://admin:123456@127.0.0.1:27017/admin',
                     }
                 },
-                knex: {
+                knex: [{
                     key: 'mysql',
                     default: true,
                     config: {
@@ -50,7 +52,20 @@ export function useTestHandler(desc: string, fn: jest.EmptyFunction) {
                             port: 3306,
                         }
                     }
-                }
+                },{
+                    key: 'pg',
+                    default: true,
+                    config: {
+                        client: 'pg',
+                        connection: {
+                            host: '127.0.0.1',
+                            user: 'postgres',
+                            password: '123456',
+                            database: 'myapp_test'
+                        },
+                        searchPath: ['knex', 'public'],
+                    }
+                }]
             });
 
             testRequest = supertest(app);
@@ -67,8 +82,8 @@ export function useTestHandler(desc: string, fn: jest.EmptyFunction) {
         });
 
         beforeEach(async function() {
-            await useMongose().model('user').deleteMany({});
-            await useKnex().table('user').truncate();
+            await knexCleanAll();
+            await mongoCleanAll();
         });
 
         describe(desc, fn);
