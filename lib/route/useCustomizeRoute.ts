@@ -1,20 +1,22 @@
-import { RequestHandler, Router } from 'express';
+import { ErrorRequestHandler, RequestHandler, Router } from 'express';
 import { setRoute } from './useRoute';
 import { compact } from 'lodash';
 import useLogger from '../log4j';
 import { levels } from 'log4js';
 
+export interface IHandlerConfig<T> {
+    url?: string;
+    method?: 'post' | 'delete' | 'put' | 'get';
+    before?: Array<RequestHandler>;
+    hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any> | any;
+    after?: Array<RequestHandler | ErrorRequestHandler>;
+}
+
 export function useCustomizeRoute<T>(options: {
     baseUrl: string;
     before?: Array<RequestHandler>;
-    after?: Array<RequestHandler>;
-    handlers?: Array<{
-        url?: string;
-        method?: 'post' | 'delete' | 'put' | 'get';
-        before?: Array<RequestHandler>;
-        hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any> | any;
-        after?: Array<RequestHandler>;
-    }>,
+    after?: Array<RequestHandler | ErrorRequestHandler>;
+    handlers?: Array<IHandlerConfig<T>>,
    
 }) : Router {
     const router = Router();

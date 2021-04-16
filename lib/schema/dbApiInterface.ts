@@ -16,4 +16,5 @@ export interface IDbApi<T> {
     }): Promise<any[]>;
     deleteById(id: string | number) : Promise<T>;
     deleteOne(query: any) : Promise<T>;
+    clean() : Promise<boolean>;
 }

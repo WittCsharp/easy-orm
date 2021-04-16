@@ -1,6 +1,6 @@
 // import { useKnex, closeKnexAll } from '../../knex';
 import useLogger from '../../log4j';
-import { KnexModelMaster, useKnexModel } from '../useKnexModel';
+import { cleanAll, KnexModelMaster, useKnexModel } from '../useKnexModel';
 import { levels } from 'log4js';
 import { useTestHandler } from '../../tests/useTestHandler';
 
@@ -204,4 +204,24 @@ useTestHandler('knex model test', () => {
 
         expect(result).toBe(0);
     });
+
+    it('clean', async () => {
+        await model.addOne({ name: '张三' });
+        await model.addOne({ name: '张三2' });
+
+        await model.clean();
+        const result = await model.findCount();
+
+        expect(result).toBe(0);
+    });
+    
+    it('clean all', async () => {
+        await model.addOne({ name: '张三' });
+        await cleanAll();
+
+        const result = await model.findCount();
+
+        expect(result).toBe(0);
+    });
+
 });

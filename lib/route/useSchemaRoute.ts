@@ -1,21 +1,35 @@
-import { RequestHandler, Router } from "express";
+import { ErrorRequestHandler, RequestHandler, Router } from "express";
 import { MongoModelMaster } from "../schema";
-import { useCustomizeRoute } from "./useCustomizeRoute";
+import { IHandlerConfig, useCustomizeRoute } from "./useCustomizeRoute";
 import { compact } from 'lodash';
 import { KnexModelMaster } from "../schema/useKnexModel";
 
-export default function useSchemaRouter({
+export default function useSchemaRouter<T>({
     baseUrl,
     model,
     before,
     after,
     disable,
+    findOneHandler,
+    editeByIdHandler,
+    deleteByIdHandler,
+    findByIdHandler,
+    insertHandler,
+    listHandler,
+    findAllHandler,
 } : {
     baseUrl: string;
     model() : MongoModelMaster<any, any> | KnexModelMaster<any>;
     before?: Array<RequestHandler>;
-    after?: Array<RequestHandler>;
+    after?: Array<RequestHandler | ErrorRequestHandler>;
     disable?: Array<'insert' | 'list' | 'findAll' | 'findById' | 'findOne' | 'editeById' | 'deleteById'>;
+    findOneHandler?: IHandlerConfig<T>;
+    editeByIdHandler?: IHandlerConfig<T>;
+    deleteByIdHandler?: IHandlerConfig<T>;
+    findByIdHandler?: IHandlerConfig<T>;
+    insertHandler?: IHandlerConfig<T>;
+    listHandler?: IHandlerConfig<T>;
+    findAllHandler?: IHandlerConfig<T>;
 }) : Router {
     disable = disable || [];
     return useCustomizeRoute({
@@ -24,7 +38,7 @@ export default function useSchemaRouter({
         after,
         handlers: compact([
             // list
-            disable.includes('list') ? null : {
+            disable.includes('list') ? null : Object.assign({
                 url: '/list',
                 async hander({ data, query }) {
                     // 获取总数量
@@ -41,49 +55,49 @@ export default function useSchemaRouter({
                     }
                 },
                 method: 'post'
-            },
+            }, listHandler || {}),
             // findById
-            disable.includes('findById') ? null : {
+            disable.includes('findById') ? null : Object.assign({
                 url: '/:id',
                 async hander({ params }) {
                     return await model().findOneById(params.id);
                 },
                 method: 'get',
-            },
+            }, findByIdHandler || {}),
             // findOne
-            disable.includes('findOne') ? null : {
+            disable.includes('findOne') ? null : Object.assign({
                 url: '/findone',
                 method: 'post',
                 async hander({data}) {
                     return await model().findOne(data);
                 }
-            },
+            }, findOneHandler || {}),
             // find all
-            disable.includes('findAll') ? null : {
+            disable.includes('findAll') ? null : Object.assign({
                 url: '/findall',
                 method: 'post',
                 async hander({data}) {
                     return await model().findAll(data?.query, data?.sort);
                 }
-            },
+            }, findAllHandler || {}),
             // editeById,
-            disable.includes('editeById') ? null : {
+            disable.includes('editeById') ? null : Object.assign({
                 url: '/:id',
                 method: 'put',
                 async hander({data, params}) {
                     return await model().updateById(params.id, data);
                 }
-            },
+            }, editeByIdHandler || {}),
             // deleteById,
-            disable.includes('deleteById') ? null : {
+            disable.includes('deleteById') ? null : Object.assign({
                 url: '/:id',
                 method: 'delete',
                 async hander({ params }) {
                     return await model().deleteById(params.id);
                 }
-            },
+            }, deleteByIdHandler || {}),
             // insert
-            disable.includes('insert') ? null : {
+            disable.includes('insert') ? null : Object.assign({
                 url: '/insert',
                 method: 'post',
                 async hander({data}) {
@@ -93,7 +107,7 @@ export default function useSchemaRouter({
                     const result = await model().addOne(data);
                     return result;
                 }
-            }
+            }, insertHandler || {})
         ])
     })
 }

@@ -8,6 +8,14 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         this.tbName = tableName;
         this.dbKey = dbKey;
     }
+    async clean(): Promise<boolean> {
+        try {
+            await useKnex(this.dbKey, true).table(this.tbName).truncate();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     getKnex(master?: boolean) {
         return useKnex(this.dbKey, master).table(this.tbName);
@@ -98,4 +106,10 @@ export function useKnexModel<T>(tableName: string, dbKey?: string) : KnexModelMa
         models[tableName] = new KnexModelMaster<T>(tableName, dbKey);
     }
     return models[tableName];
+}
+
+export async function cleanAll() {
+    for (const tableName of Object.keys(models)) {
+        await models[tableName].clean();
+    }
 }
