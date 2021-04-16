@@ -22,14 +22,14 @@ export class KnexModelMaster<T> implements IDbApi<T> {
     }
 
     async addOne(data: T): Promise<T> {
-        const ids = await useKnex(this.dbKey, true).table(this.tbName).insert(data);
+        const ids = await useKnex(this.dbKey, true).table(this.tbName).insert(data).returning('id');
         const result = await useKnex(this.dbKey).table(this.tbName).select('*')
-                .whereIn('id', ids).first();
+                .whereIn('id', Array.isArray(ids) ? ids : [ids]).first();
         return result;
     }
 
     async addMany(data: T[]): Promise<T[]> {
-        const ids: Array<number> = await useKnex(this.dbKey, true).table(this.tbName).insert(data);
+        const ids: Array<number> = await useKnex(this.dbKey, true).table(this.tbName).insert(data).returning('id');
 
         const results = await useKnex(this.dbKey).table(this.tbName).select('*')
                 .whereBetween('id', [ids[0], ids[0] + data.length]);
@@ -64,10 +64,10 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         return await exec;
     }
     async findCount(query?: any): Promise<number> {
-        let exec = useKnex(this.dbKey).table(this.tbName).count<{count: number}>('id as count').first();
+        let exec = useKnex(this.dbKey).table(this.tbName).count<{count: string}>('id as count').first();
         if (query) exec = exec.where(query);
         const result = await exec;
-        return result.count;
+        return parseInt(result.count);
     }
     async findList(options: { query?: any; page: number; pageSize: number; sort?: any; }): Promise<any[]> {
         let exec = useKnex(this.dbKey).table(this.tbName).select('*')

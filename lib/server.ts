@@ -12,7 +12,7 @@ let server: Server;
 
 export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     config: {
-        port: number;
+        port?: number;
         debug?: boolean;
     };
     routes?: Array<express.Router> | undefined | null;
@@ -81,10 +81,12 @@ export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     });
 
     // 监听
-    server = app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
+    if (port)
+        server = app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
     return app;
 }
 
 export function stopHttp() {
-    server.close();
+    if (server)
+        server.close();
 }
