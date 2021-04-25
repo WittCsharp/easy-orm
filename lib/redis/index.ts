@@ -30,3 +30,9 @@ export function useRedis(options?: IRedisConfig | string) : Redis.Redis | Redis.
         clients.default = clients[options.key];
     return clients[options?.key || 'default']?.redis;
 }
+
+export function closeRedisAll() {
+    for (const key in clients) {
+        clients[key].redis.disconnect();
+    }
+}
