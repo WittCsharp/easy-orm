@@ -9,6 +9,7 @@ export interface IHandlerConfig<T> {
     method?: 'post' | 'delete' | 'put' | 'get';
     before?: Array<RequestHandler>;
     hander?({req, res, params, query, data}: {res: any; req: any; params?: any; query?: any; data?: T}) : Promise<any> | any;
+    handerDone?({req, res, params, query, data, done}: {res: any; req: any; params?: any; query?: any; data?: T; done?: any}) : Promise<any> | any;
     after?: Array<RequestHandler | ErrorRequestHandler>;
 }
 
@@ -31,13 +32,24 @@ export function useCustomizeRoute<T>(options: {
                     // content
                     async (req: any, res: any, done) => {
                         try {
-                            const result = await handler.hander({
-                                req, res,
-                                data: req.body,
-                                params: req.params,
-                                query: req.query,
-                            });
-                            res.result = result;
+                            if (handler.hander) {
+                                const result = await handler.hander({
+                                    req, res,
+                                    data: req.body,
+                                    params: req.params,
+                                    query: req.query,
+                                });
+                                res.result = result;
+                            }
+                            if (handler.handerDone) {
+                                return await handler.handerDone({
+                                    req, res,
+                                    data: req.body,
+                                    params: req.params,
+                                    query: req.query,
+                                    done: done,
+                                });
+                            }
                             done();
                         } catch (error) {
                             useLogger().log({

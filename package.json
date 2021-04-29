@@ -1,10 +1,10 @@
 {
   "name": "xeasy-orm",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "easy orm",
   "main": "src/index.js",
   "scripts": {
-    "test": "rm -rf ./src && tsc --build && jest ./src/**/*/*.test.js --detectOpenHandles --coverage",
+    "test": "rm -rf ./src && tsc --build && jest --verbose ./src/**/*/*.test.js --detectOpenHandles --coverage",
     "build": "rm -rf ./src && tsc --build",
     "clean": "tsc --build --clean"
   },

@@ -43,12 +43,13 @@ export default function useSchemaRouter<T>({
                 async hander({ data, query }) {
                     // 获取总数量
                     const total = await model().findCount(data?.query);
-                    const {page, pageSize} = query;
+                    const {page, pageSize, select} = query;
                     const list = await model().findList({
                         query: data?.query,
                         page: Number(page),
                         pageSize: Number(pageSize),
                         sort: data?.sort,
+                        select: select && JSON.parse(select),
                     });
                     return {
                         total, list
@@ -59,8 +60,8 @@ export default function useSchemaRouter<T>({
             // findById
             disable.includes('findById') ? null : Object.assign({
                 url: '/:id',
-                async hander({ params }) {
-                    return await model().findOneById(params.id);
+                async hander({ params, query }) {
+                    return await model().findOneById(params.id, query?.select && JSON.parse(query?.select));
                 },
                 method: 'get',
             }, findByIdHandler || {}),
@@ -68,16 +69,16 @@ export default function useSchemaRouter<T>({
             disable.includes('findOne') ? null : Object.assign({
                 url: '/findone',
                 method: 'post',
-                async hander({data}) {
-                    return await model().findOne(data);
+                async hander({data, query}) {
+                    return await model().findOne(data, query?.select && JSON.parse(query?.select));
                 }
             }, findOneHandler || {}),
             // find all
             disable.includes('findAll') ? null : Object.assign({
                 url: '/findall',
                 method: 'post',
-                async hander({data}) {
-                    return await model().findAll(data?.query, data?.sort);
+                async hander({data, query}) {
+                    return await model().findAll(data?.query, data?.sort, query?.select && JSON.parse(query?.select));
                 }
             }, findAllHandler || {}),
             // editeById,
