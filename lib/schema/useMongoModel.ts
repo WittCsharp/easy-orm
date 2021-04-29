@@ -35,18 +35,18 @@ export class MongoModelMaster<T extends Document, D> implements IDbApi<D> {
         return await useMongose().model<T>(this.tbName).count(query);
     }
 
-    async findOneById(id: string | number): Promise<D> {
-        const doc = await useMongose().model<T>(this.tbName).findById(id);
+    async findOneById(id: string | number, select?: string[]): Promise<D> {
+        const doc = await useMongose().model<T>(this.tbName).findById(id, select && select.join(' '));
         return doc.toObject();
     }
 
-    async findOne(query: FilterQuery<T>): Promise<D> {
-        const doc = await useMongose().model<T>(this.tbName).findOne(query);
+    async findOne(query: FilterQuery<T>, select?: string[]): Promise<D> {
+        const doc = await useMongose().model<T>(this.tbName).findOne(query, select && select.join(' '));
         return doc.toObject();
     }
 
-    async findAll(query?: FilterQuery<any>, sort?: any): Promise<D[]> {
-        let exec = useMongose().model<T>(this.tbName).find(query);
+    async findAll(query?: FilterQuery<any>, sort?: any, select?: string[]): Promise<D[]> {
+        let exec = useMongose().model<T>(this.tbName).find(query, select && select.join(' '));
         if (sort) {
             exec = exec.sort(sort);
         }
@@ -59,8 +59,9 @@ export class MongoModelMaster<T extends Document, D> implements IDbApi<D> {
         page: number; 
         pageSize: number;
         sort?: any;
+        select?: string[];
     }): Promise<D[]> {
-        let exec = useMongose().model<T>(this.tbName).find(options.query)
+        let exec = useMongose().model<T>(this.tbName).find(options.query, options.select && options.select.join(' '))
         .skip(options.pageSize * (options.page - 1))
         .limit(options.pageSize);
         if (options.sort) {

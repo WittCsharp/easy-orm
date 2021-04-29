@@ -49,14 +49,14 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         await useKnex(this.dbKey, true).table(this.tbName).update(data).whereIn('id', record.map(r => r.id));
         return await useKnex(this.dbKey).table(this.tbName).select('*').whereIn('id', record.map(r => r.id));
     }
-    async findOneById(id: string | number): Promise<T> {
-        return await useKnex(this.dbKey).table(this.tbName).select('*').where('id', id).first();
+    async findOneById(id: string | number, select?: string[]): Promise<T> {
+        return await useKnex(this.dbKey).table(this.tbName).select(select || '*').where('id', id).first();
     }
-    async findOne(query: any): Promise<T> {
-        return await useKnex(this.dbKey).table(this.tbName).select('*').where(query).first();
+    async findOne(query: any, select?: string[]): Promise<T> {
+        return await useKnex(this.dbKey).table(this.tbName).select(select || '*').where(query).first();
     }
-    async findAll(query?: any, sort?: any): Promise<T[]> {
-        let exec = useKnex(this.dbKey).table(this.tbName).select('*');
+    async findAll(query?: any, sort?: any, select?: string[]): Promise<T[]> {
+        let exec = useKnex(this.dbKey).table(this.tbName).select(select || '*');
         if (query) {
             exec = exec.where(query);
         }
@@ -69,8 +69,8 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         const result = await exec;
         return parseInt(result.count);
     }
-    async findList(options: { query?: any; page: number; pageSize: number; sort?: any; }): Promise<any[]> {
-        let exec = useKnex(this.dbKey).table(this.tbName).select('*')
+    async findList(options: { query?: any; page: number; pageSize: number; sort?: any; select?: string[]; }): Promise<any[]> {
+        let exec = useKnex(this.dbKey).table(this.tbName).select(options.select || '*')
             .offset(options.pageSize * (options.page - 1))
             .limit(options.pageSize);
             if (options.query) {
