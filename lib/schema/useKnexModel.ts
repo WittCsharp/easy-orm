@@ -1,6 +1,34 @@
 import { useKnex } from '../knex';
 import { IDbApi } from './dbApiInterface';
 
+const knexW = {
+    '$or': 'orWhere',
+    '$and': 'andWhere',
+  }
+  
+function _parseWhr(knex, whr) {
+    if (typeof whr === 'object' && !Array.isArray(whr)) return knex.andWhere(whr);
+    if (typeof whr[0] === 'string') return knex.andWhere(...whr);
+    whr.map((item) => {
+      if (Array.isArray(item)) {
+        let knexM = 'andWhere';
+        if (knexW[item[0]]){
+          knexM = knexW[item[0]];
+          item.splice(0,1);
+        }
+        if (item[1] === 'isnull') {
+            knex = knex.whereNull(item[0]);
+        } else if (item[1] === 'notnull') {
+            knex = knex.whereNotNull(item[0]);
+        }
+        else knex = knex[knexM](...item);
+      } else {
+        knex = knex.andWhere(item);
+      }
+    });
+    return knex;
+  }
+
 export class KnexModelMaster<T> implements IDbApi<T> {
     tbName: string;
     dbKey: string;
@@ -53,19 +81,22 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         return await useKnex(this.dbKey).table(this.tbName).select(select || '*').where('id', id).first();
     }
     async findOne(query: any, select?: string[]): Promise<T> {
-        return await useKnex(this.dbKey).table(this.tbName).select(select || '*').where(query).first();
+        let exec = useKnex(this.dbKey).table(this.tbName).select(select || '*').first();
+        exec =_parseWhr(exec, query);
+        return await exec;
     }
     async findAll(query?: any, sort?: any, select?: string[]): Promise<T[]> {
         let exec = useKnex(this.dbKey).table(this.tbName).select(select || '*');
         if (query) {
-            exec = exec.where(query);
+            exec =_parseWhr(exec, query);
+            // exec = exec.where(query);
         }
         if (sort) exec = exec.orderBy(sort);
         return await exec;
     }
     async findCount(query?: any): Promise<number> {
         let exec = useKnex(this.dbKey).table(this.tbName).count<{count: string}>('id as count').first();
-        if (query) exec = exec.where(query);
+        if (query) exec =_parseWhr(exec, query);
         const result = await exec;
         return parseInt(result.count);
     }
@@ -74,7 +105,7 @@ export class KnexModelMaster<T> implements IDbApi<T> {
             .offset(options.pageSize * (options.page - 1))
             .limit(options.pageSize);
             if (options.query) {
-                exec = exec.where(options.query);
+                exec =_parseWhr(exec, options.query);
             }
             if (options.sort) exec = exec.orderBy(options.sort);
         const result = await exec;
