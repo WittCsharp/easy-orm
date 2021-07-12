@@ -5,6 +5,21 @@ const knexW = {
     '$or': 'orWhere',
     '$and': 'andWhere',
   }
+
+function checkValues(values: any) {
+    const data: any = {};
+    for (const key in values) {
+        if (values[key] === null) {
+            data[key] = null;
+            continue;
+        }
+        if (typeof (values[key]) === 'object')
+            data[key] = JSON.stringify(values[key]);
+        else
+            data[key] = values[key];
+    }
+    return data;
+}
   
 function _parseWhr(knex, whr) {
     if (typeof whr === 'object' && !Array.isArray(whr)) return knex.andWhere(whr);
@@ -50,31 +65,43 @@ export class KnexModelMaster<T> implements IDbApi<T> {
     }
 
     async addOne(data: T): Promise<T> {
-        const ids = await useKnex(this.dbKey, true).table(this.tbName).insert(data).returning('id');
+        const cloneData: T = checkValues(data);
+        const ids = await useKnex(this.dbKey, true).table(this.tbName).insert(cloneData).returning('id');
         const result = await useKnex(this.dbKey).table(this.tbName).select('*')
                 .whereIn('id', Array.isArray(ids) ? ids : [ids]).first();
         return result;
     }
 
     async addMany(data: T[]): Promise<T[]> {
-        const ids: Array<number> = await useKnex(this.dbKey, true).table(this.tbName).insert(data).returning('id');
+        const cloneData:T[] = [];
+        for (const d of data) {
+            cloneData.push(checkValues(d));
+        }
+        const ids: Array<number> = await useKnex(this.dbKey, true).table(this.tbName).insert(cloneData).returning('id');
 
         const results = await useKnex(this.dbKey).table(this.tbName).select('*')
-                .whereBetween('id', [ids[0], ids[0] + data.length]);
+                .whereBetween('id', [ids[0], ids[0] + cloneData.length]);
         return results;
     }
     async updateOne(query: any, data: T): Promise<T> {
-        const record:{id: string} = await useKnex(this.dbKey).table(this.tbName).select('id').where(query).first();
-        await useKnex(this.dbKey, true).table(this.tbName).update(data).where('id', record.id);
+        const cloneData: T = checkValues(data);
+        let exec = useKnex(this.dbKey).table(this.tbName).select('id').first();
+        exec =_parseWhr(exec, query);
+        const record:{id: string} = await exec;
+        await useKnex(this.dbKey, true).table(this.tbName).update(cloneData).where('id', record.id);
         return await useKnex(this.dbKey).table(this.tbName).select('*').where('id', record.id).first();
     }
     async updateById(id: string | number, data: T): Promise<T> {
-        await useKnex(this.dbKey, true).table(this.tbName).update(data).where('id', id);
+        const cloneData: T = checkValues(data);
+        await useKnex(this.dbKey, true).table(this.tbName).update(cloneData).where('id', id);
         return await useKnex(this.dbKey).table(this.tbName).select('*').where('id', id).first();
     }
     async updateMany(query: any, data: T): Promise<T[]> {
-        const record:Array<{id: string}> = await useKnex(this.dbKey).table(this.tbName).select('id').where(query);
-        await useKnex(this.dbKey, true).table(this.tbName).update(data).whereIn('id', record.map(r => r.id));
+        const cloneData: T = checkValues(data);
+        let exec = useKnex(this.dbKey).table(this.tbName).select('id');
+        exec =_parseWhr(exec, query);
+        const record:Array<{id: string}> = await exec;
+        await useKnex(this.dbKey, true).table(this.tbName).update(cloneData).whereIn('id', record.map(r => r.id));
         return await useKnex(this.dbKey).table(this.tbName).select('*').whereIn('id', record.map(r => r.id));
     }
     async findOneById(id: string | number, select?: string[]): Promise<T> {
@@ -117,7 +144,9 @@ export class KnexModelMaster<T> implements IDbApi<T> {
         return result;
     }
     async deleteOne(query: any): Promise<T> {
-        const result = await useKnex(this.dbKey).table(this.tbName).select('*').where(query).first();
+        let exec = useKnex(this.dbKey).table(this.tbName).select('*').first();
+        if (query) exec =_parseWhr(exec, query);
+        const result = await exec;
         await useKnex(this.dbKey, true).table(this.tbName).delete().where('id', result.id);
         return result;
     }
