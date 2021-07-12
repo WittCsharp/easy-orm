@@ -1,6 +1,6 @@
 {
   "name": "xeasy-orm",
-  "version": "0.1.7",
+  "version": "0.2.6",
   "description": "easy orm",
   "main": "src/index.js",
   "scripts": {
