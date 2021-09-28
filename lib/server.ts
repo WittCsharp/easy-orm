@@ -7,10 +7,12 @@ import {getRoutes} from './route';
 import { useMongose } from './mongodb';
 import { IRedisConfig, useRedis } from './redis';
 import { IKnexConfig } from './knex/index';
+import * as http from 'http';
+import * as socketIo from 'socket.io';
 
 let server: Server;
 
-export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
+export function useHttp({config, routes, hooks, knex, mongo, json, redis, socket}: {
     config: {
         port?: number;
         debug?: boolean;
@@ -24,7 +26,8 @@ export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     mongo?: IMongoConfig | Array<IMongoConfig>;
     redis?: Array<IRedisConfig> | IRedisConfig;
     json?: number;
-}): express.Application {
+    socket?: (io:socketIo.Server) => void;
+}): express.Application | Server {
     // knex 配置初始化
     if (knex) {
         useKnex(knex);
@@ -43,6 +46,7 @@ export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     }
     const {port} = config;
     const app = express();
+    
     if (json) {
         app.use(express.json({limit: `${json}mb`}));
     }
@@ -81,9 +85,18 @@ export function useHttp({config, routes, hooks, knex, mongo, json, redis}: {
     });
 
     // 监听
-    if (port)
-        server = app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
-    return app;
+    server = http.createServer(app);
+    if (socket) {
+        const io = new socketIo.Server(server, {cors: {
+            origin: '*',
+        }});
+        socket(io);
+    }
+    if (port) {
+        server.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
+    }
+        // server = app.listen(port || 3000, () => console.log(`Express with Typescript! http://localhost:${port || 3000}`))
+    return server;
 }
 
 export function stopHttp() {

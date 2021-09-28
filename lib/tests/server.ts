@@ -2,8 +2,9 @@ import { Application } from 'express';
 import * as supertest from 'supertest';
 import { useHttp, stopHttp } from '../index';
 import {useRoute} from '../route';
+import {Server} from 'http';
 
-let app: Application;
+let app: Application | Server;
 
 describe('server test', () => {
     beforeAll(() => {

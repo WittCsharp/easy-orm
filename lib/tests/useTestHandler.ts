@@ -32,40 +32,40 @@ export function useTestHandler(desc: string, fn: jest.EmptyFunction) {
                     debug: true
                 },
                 json: 2,
-                mongo: {
-                    key: 'mongo',
-                    default: true,
-                    config: {
-                        uri: 'mongodb://admin:123456@127.0.0.1:27017/admin',
-                    }
-                },
-                knex: [{
-                    key: 'mysql',
-                    default: true,
-                    config: {
-                        client: 'mysql',
-                        connection: {
-                            host: '127.0.0.1',
-                            user: 'root',
-                            password: '12345678',
-                            database: 'myapp_test',
-                            port: 3306,
-                        }
-                    }
-                },{
-                    key: 'pg',
-                    default: true,
-                    config: {
-                        client: 'pg',
-                        connection: {
-                            host: '127.0.0.1',
-                            user: 'postgres',
-                            password: '123456',
-                            database: 'myapp_test'
-                        },
-                        searchPath: ['knex', 'public'],
-                    }
-                }]
+                // mongo: {
+                //     key: 'mongo',
+                //     default: true,
+                //     config: {
+                //         uri: 'mongodb://admin:123456@127.0.0.1:27017/admin',
+                //     }
+                // },
+                // knex: [{
+                //     key: 'mysql',
+                //     default: true,
+                //     config: {
+                //         client: 'mysql',
+                //         connection: {
+                //             host: '127.0.0.1',
+                //             user: 'root',
+                //             password: '12345678',
+                //             database: 'myapp_test',
+                //             port: 3306,
+                //         }
+                //     }
+            //     },{
+                //     key: 'pg',
+                //     default: true,
+                //     config: {
+                //         client: 'pg',
+                //         connection: {
+                //             host: '127.0.0.1',
+                //             user: 'postgres',
+                //             password: '123456',
+                //             database: 'myapp_test'
+                //         },
+                //         searchPath: ['knex', 'public'],
+                //     }
+                // }]
             });
 
             testRequest = supertest(app);
